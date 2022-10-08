@@ -1,0 +1,64 @@
+=insecure-lock= is an extensible screen lock framework.
+
+It is implemented within Emacs itself rather than interfacing with underlying window system, so it is best used together with EXWM as a screen locker. Otherwise, it can be used as a screen saver.
+
+* Configuration
+Add the following lines to your =init.el=
+#+BEGIN_SRC emacs-lisp
+  (require 'insecure-lock)
+  (insecure-lock-run-idle 300) ;; Lock screen after 300 seconds
+  (require 'posframe)
+  (add-hook 'insecure-lock-mode-hook 'insecure-lock-posframe) ;; Enable date time display
+#+END_SRC
+
+** Variables for customization
+- =insecure-lock-require-password= :: If set, intercept input events and require login password to unlock.
+Otherwise unlock with any key stroke, acting more like a screen saver.
+- =insecure-lock-mode-hook= :: You can turn on screen lock "modules" by adding functions to this variable.
+  The default value is ='(insecure-lock-blank-screen insecure-lock-posframe)=.
+
+  Available "modules" (in fact just plain functions):
+  - =insecure-lock-blank-screen= :: Display a blank buffer without modeline in place of any displaying buffers/windows.
+  - =insecure-lock-redact= :: Available only if the =redacted= package is loaded. Turn on =redact-mode= on any displaying buffer.
+  - =insecure-lock-posframe= :: Available only if the =posframe= package is loaded. Display a posframe to show some status. This can be customized by:
+    - =insecure-lock-posframe-parameters= :: Parameters to the posframe.
+    - =insecure-lock-posframe-update-function= :: Function to populate the posframe. The default one, =insecure-lock-posframe-default-update-function=, shows current time and date in two lines, padded and centered. It's a good starting point for writing your own snippet!
+
+* Writing a module
+
+A primary goal for =insecure-lock= is to be composable and extensible. It should be quite easy to get hands on extending =insecure-lock=. Start Writing your module for your own amusement! And contribute to spread the joy!
+
+** An example =insecure-lock= module
+A minimal example of a =insecure-lock= module:
+#+BEGIN_SRC emacs-lisp
+  (defvar blackout--saved-background-color nil)
+  (defun blackout ()
+    (if insecure-lock-mode
+        (progn
+          (setq blackout--saved-background-color (face-background 'default))
+          (set-background-color "black"))
+      (set-background-color (face-background 'default)))
+#+END_SRC
+You can enable it via =(add-hook 'insecure-lock-mode-hook 'blackout)=. This sets Emacs background color to black when screen is locked, and recover the original background color when unlocked.
+
+In general, a module look like:
+#+BEGIN_SRC emacs-lisp
+  (defun my-module ()
+    (if insecure-lock-mode
+        '(code to setup when entering screen lock)
+      '(code to clean up when leaving screen lock))
+#+END_SRC
+** Useful Variables
+- =insecure-lock-update-functions= :: Add periodic update functions for your module to this variable! The =insecure-lock-update-timer= will call functions in this list every =insecure-lock-update-timer-interval= seconds (default to 1).
+  #+BEGIN_SRC emacs-lisp
+    (defun my-module-update ()
+      '(code to update display))
+    (defun my-module ()
+      (if insecure-lock-mode
+          (progn
+            (add-hook 'insecure-lock-update-functions 'my-module-update)
+            '(code to setup when entering screen lock))
+        '(code to clean up when leaving screen lock))
+  #+END_SRC
+
+  There's no need to bother removing the update functions when cleanup. =insecure-lock-update-functions= will be set to =nil= at the beginning of screen lock setup.
