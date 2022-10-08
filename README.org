@@ -12,17 +12,16 @@ Add the following lines to your =init.el=
 #+END_SRC
 
 ** Variables for customization
-- =insecure-lock-require-password= :: If set, intercept input events and require login password to unlock.
-Otherwise unlock with any key stroke, acting more like a screen saver.
+- =insecure-lock-require-password= :: If set, intercept input events and require login password to unlock. Otherwise unlock with any key stroke, acting more like a screen saver.
 - =insecure-lock-mode-hook= :: You can turn on screen lock "modules" by adding functions to this variable.
   The default value is ='(insecure-lock-blank-screen insecure-lock-posframe)=.
 
-  Available "modules" (in fact just plain functions):
-  - =insecure-lock-blank-screen= :: Display a blank buffer without modeline in place of any displaying buffers/windows.
-  - =insecure-lock-redact= :: Available only if the =redacted= package is loaded. Turn on =redact-mode= on any displaying buffer.
-  - =insecure-lock-posframe= :: Available only if the =posframe= package is loaded. Display a posframe to show some status. This can be customized by:
-    - =insecure-lock-posframe-parameters= :: Parameters to the posframe.
-    - =insecure-lock-posframe-update-function= :: Function to populate the posframe. The default one, =insecure-lock-posframe-default-update-function=, shows current time and date in two lines, padded and centered. It's a good starting point for writing your own snippet!
+Available "modules" (in fact just plain functions):
+- =insecure-lock-blank-screen= :: Display a blank buffer without modeline in place of any displaying buffers/windows.
+- =insecure-lock-redact= :: Available only if the =redacted= package is loaded. Turn on =redact-mode= on any displaying buffer.
+- =insecure-lock-posframe= :: Available only if the =posframe= package is loaded. Display a posframe to show some status. This can be customized by:
+  + =insecure-lock-posframe-parameters= :: Parameters to the posframe.
+  + =insecure-lock-posframe-update-function= :: Function to populate the posframe. The default one, =insecure-lock-posframe-default-update-function=, shows current time and date in two lines, padded and centered. It's a good starting point for writing your own snippet!
 
 * Writing a module
 
