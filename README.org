@@ -14,7 +14,7 @@ Add the following lines to your =init.el=
 ** Variables for customization
 - =insecure-lock-require-password= :: If set, intercept input events and require login password to unlock. Otherwise unlock with any key stroke, acting more like a screen saver.
 - =insecure-lock-mode-hook= :: You can turn on screen lock "modules" by adding functions to this variable.
-  The default value is ~'(insecure-lock-blank-screen)~.
+  The default value is =\'(insecure-lock-blank-screen)=.
 
 Available "modules" (in fact just plain functions):
 - =insecure-lock-blank-screen= :: Display a blank buffer without modeline in place of any displaying buffers/windows.
