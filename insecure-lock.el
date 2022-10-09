@@ -1,4 +1,4 @@
-;;; insecure-lock --- Screen lock within Emacs  -*- lexical-binding: t; -*-
+;;; insecure-lock.el --- Screen lock within Emacs  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
 
@@ -28,9 +28,9 @@
 ;;
 ;; It is implemented within Emacs itself rather than interfacing with
 ;; underlying window system, so it is best used together with EXWM as
-;; a screen locker. Otherwise, it can be used as a screen saver.
+;; a screen locker.  Otherwise, it can be used as a screen saver.
 
-;;; Code
+;;; Code:
 
 ;;; Core
 
@@ -61,6 +61,35 @@ Otherwise unlock with any key stroke, acting more like a screen saver."
   (use-local-map insecure-lock--saved-local-map)
   (setq insecure-lock--saved-global-map nil
         insecure-lock--saved-local-map nil))
+
+(defvar insecure-lock-update-timer nil)
+(defvar insecure-lock-update-functions nil)
+(defcustom insecure-lock-update-timer-interval 1
+  "Interval to run `insecure-lock-update-functions'."
+  :type 'number :group 'insecure-lock)
+(defun insecure-lock-run-update-timer ()
+  (when insecure-lock-update-timer
+    (cancel-timer insecure-lock-update-timer))
+  (setq insecure-lock-update-timer
+        (run-at-time t insecure-lock-update-timer-interval
+                     '(lambda () (run-hooks 'insecure-lock-update-functions)))))
+(defun insecure-lock-stop-update-timer ()
+  (when insecure-lock-update-timer
+    (cancel-timer insecure-lock-update-timer)
+    (setq insecure-lock-update-timer nil)))
+
+(defvar insecure-lock-idle-timer nil)
+(defun insecure-lock-run-idle (seconds)
+  "Start idle timer to lock screen after SECONDS.
+
+If SECONDS is nil or non-positive, disable idle timer."
+  (interactive (list (read-number "Lock screen after idle seconds, enter 0 to disable: " 300)))
+  (when insecure-lock-idle-timer
+    (cancel-timer insecure-lock-idle-timer)
+    (setq insecure-lock-idle-timer nil))
+  (when (and seconds (> seconds 0))
+    (setq insecure-lock-idle-timer
+          (run-with-idle-timer seconds t 'insecure-lock-enter))))
 
 (defvar insecure-lock-mode-hook '(insecure-lock-blank-screen))
 (define-minor-mode insecure-lock-mode
@@ -96,35 +125,6 @@ Otherwise unlock with any key stroke, acting more like a screen saver."
   (insecure-lock-stop-update-timer)
   (insecure-lock-mode -1))
 
-(defvar insecure-lock-update-timer nil)
-(defvar insecure-lock-update-functions nil)
-(defcustom insecure-lock-update-timer-interval 1
-  "Interval to run `insecure-lock-update-functions'."
-  :type 'number :group 'insecure-lock)
-(defun insecure-lock-run-update-timer ()
-  (when insecure-lock-update-timer
-    (cancel-timer insecure-lock-update-timer))
-  (setq insecure-lock-update-timer
-        (run-at-time t insecure-lock-update-timer-interval
-                     '(lambda () (run-hooks 'insecure-lock-update-functions)))))
-(defun insecure-lock-stop-update-timer ()
-  (when insecure-lock-update-timer
-    (cancel-timer insecure-lock-update-timer)
-    (setq insecure-lock-update-timer nil)))
-
-(defvar insecure-lock-idle-timer nil)
-(defun insecure-lock-run-idle (seconds)
-  "Start idle timer to lock screen after SECONDS.
-
-If SECONDS is nil or non-positive, disable idle timer."
-  (interactive (list (read-number "Lock screen after idle seconds, enter 0 to disable: " 300)))
-  (when insecure-lock-idle-timer
-    (cancel-timer insecure-lock-idle-timer)
-    (setq insecure-lock-idle-timer nil))
-  (when (and seconds (> seconds 0))
-    (setq insecure-lock-idle-timer
-          (run-with-idle-timer seconds t 'insecure-lock-enter))))
-
 ;;; Screen Lock Modules
 
 (defvar insecure-lock--saved-window-configuration nil)
@@ -140,13 +140,14 @@ displaying buffers/windows."
         (with-current-buffer (get-buffer-create " *Insecure Lock Blank Screen*")
           (setq-local mode-line-format nil cursor-type nil)
           (dolist (frame (frame-list))
-            (display-buffer-full-frame (current-buffer) nil))))
+            (with-selected-frame frame
+              (display-buffer-full-frame (current-buffer) nil)))))
     (set-window-configuration insecure-lock--saved-window-configuration)
     (setq insecure-lock--saved-window-configuration nil)))
 
+(defvar-local insecure-lock--saved-mode-line-format nil)
 (eval-after-load 'redacted
   '(progn
-     (defvar-local insecure-lock--saved-mode-line-format nil)
      (defun insecure-lock-redact ()
        "`insecure-lock' module that redacts buffers."
        (if insecure-lock-mode
@@ -170,6 +171,7 @@ displaying buffers/windows."
          (setq-default mode-line-format insecure-lock--saved-mode-line-format
                        insecure-lock--saved-mode-line-format nil)))))
 
+(require 'shr)
 (eval-after-load 'posframe
   '(progn
      (defvar insecure-lock-posframe-parameters
