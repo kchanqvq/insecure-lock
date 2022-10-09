@@ -2,19 +2,31 @@
 
 It is implemented within Emacs itself rather than interfacing with underlying window system, so it is best used together with EXWM as a screen locker. Otherwise, it can be used as a screen saver.
 
+* Gallery
+=(setq 'insecure-lock-mode-hook '(insecure-lock-redact insecure-lock-posframe))=
+[[/screenshot1.png]]
+
+=(setq insecure-lock-mode-hook '(vampire-time-screensaver insecure-lock-blank-screen))= (=vampire-time-screensaver= is a function for my personal use, haven't published yet. Curious people may check my =.emacs.d=.)
+[[/screenshot2.png]]
+
 * Configuration
 Add the following lines to your =init.el=
 #+BEGIN_SRC emacs-lisp
   (require 'insecure-lock)
   (insecure-lock-run-idle 300) ;; Lock screen after 300 seconds
   (require 'posframe)
-  (add-hook 'insecure-lock-mode-hook 'insecure-lock-posframe) ;; Enable date time display
+  (setq 'insecure-lock-mode-hook '(insecure-lock-blank-screen insecure-lock-posframe)) ;; Enable date time display
 #+END_SRC
 
 ** Variables for customization
-- =insecure-lock-require-password= :: If set, intercept input events and require login password to unlock. Otherwise unlock with any key stroke, acting more like a screen saver.
-- =insecure-lock-mode-hook= :: You can turn on screen lock "modules" by adding functions to this variable.
-  The default value is =(insecure-lock-blank-screen)=.
+
+*** =insecure-lock-require-password=
+If set, intercept input events and require login password to unlock. Otherwise unlock with any key stroke, acting more like a screen saver.
+
+*** =insecure-lock-mode-hook=
+You can turn on screen lock "modules" by adding functions to this variable. The default value is =(insecure-lock-blank-screen)=.
+
+The order of modules matters! For example, usually you want to put =insecure-lock-posframe= after the rest so that the posframe doesn't get blanked/redacted.
 
 Available "modules" (in fact just plain functions):
 - =insecure-lock-blank-screen= :: Display a blank buffer without modeline in place of any displaying buffers/windows.
