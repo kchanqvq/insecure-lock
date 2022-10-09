@@ -46,7 +46,9 @@ Otherwise unlock with any key stroke, acting more like a screen saver."
 (defvar insecure-lock--saved-global-map nil)
 (defvar insecure-lock-map
   (let ((map (make-keymap)))
-    (keymap-substitute map 'self-insert-command 'self-insert-command global-map)
+    (if (fboundp 'keymap-substitute)
+        (keymap-substitute map 'self-insert-command 'self-insert-command global-map)
+      (substitute-key-definition 'self-insert-command 'self-insert-command map global-map))
     map))
 (defun insecure-lock-lock-keys ()
   "Start intercepting input events."
