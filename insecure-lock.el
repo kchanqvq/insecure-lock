@@ -5,7 +5,7 @@
 ;; Author: Qiantan Hong <qhong@alum.mit.edu>
 ;; Maintainer: Qiantan Hong <qhong@alum.mit.edu>
 ;; URL: https://github.com/BlueFlo0d/insecure-lock
-;; Package-Requires: ((emacs "27.1"))
+;; Package-Requires: ((emacs "28.1"))
 ;; Keywords: unix screensaver security
 ;; Version: 0.0.0
 
@@ -75,7 +75,7 @@ Otherwise unlock with any key stroke, acting more like a screen saver."
     (cancel-timer insecure-lock-update-timer))
   (setq insecure-lock-update-timer
         (run-at-time t insecure-lock-update-timer-interval
-                     '(lambda () (run-hooks 'insecure-lock-update-functions)))))
+                     (lambda () (run-hooks 'insecure-lock-update-functions)))))
 (defun insecure-lock-stop-update-timer ()
   (when insecure-lock-update-timer
     (cancel-timer insecure-lock-update-timer)
@@ -131,6 +131,26 @@ If SECONDS is nil or non-positive, disable idle timer."
 ;;; Screen Lock Modules
 
 (defvar insecure-lock--saved-window-configuration nil)
+
+(defun insecure-lock--display-buffer-full-frame (buffer alist)
+  "Compatability function for `display-buffer-full-frame'.
+
+Display BUFFER in the current frame, taking the entire frame.
+ALIST is an association list of action symbols and values.  See
+Info node `(elisp) Buffer Display Action Alists' for details of
+such alists.
+
+This is an action function for buffer display, see Info
+node `(elisp) Buffer Display Action Functions'.  It should be
+called only by `display-buffer' or a function directly or
+indirectly called by the latter."
+  (when-let ((window (or (display-buffer-reuse-window buffer alist)
+                         (display-buffer-same-window buffer alist)
+                         (display-buffer-pop-up-window buffer alist)
+                         (display-buffer-use-some-window buffer alist))))
+    (delete-other-windows window)
+    window))
+
 (defun insecure-lock-blank-screen ()
   "`insecure-lock' module that blanks screen.
 
@@ -144,7 +164,10 @@ displaying buffers/windows."
           (setq-local mode-line-format nil cursor-type nil)
           (dolist (frame (frame-list))
             (with-selected-frame frame
-              (display-buffer-full-frame (current-buffer) nil)))))
+              (funcall (if (fboundp 'display-buffer-full-frame)
+                           'display-buffer-full-frame
+                         'insecure-lock--display-buffer-full-frame)
+                       (current-buffer) nil)))))
     (set-window-configuration insecure-lock--saved-window-configuration)
     (setq insecure-lock--saved-window-configuration nil)))
 
