@@ -160,7 +160,7 @@ displaying buffers/windows."
     (defun insecure-lock-posframe-default-update-function ()
       (with-current-buffer " *Insecure Lock Screensaver*"
         (delete-region (point-min) (point-max))
-        (let ((line1 (propertize (concat " " (format-time-string "%I:%M:%S %p") " ")
+        (let ((line1 (propertize (concat " " (format-time-string "%-I:%M:%S %p") " ")
                                  'face '(:height 10.0)))
               (line2 (propertize (format-time-string "%a %m/%d/%Y")
                                  'face '(:height 5.0))))
