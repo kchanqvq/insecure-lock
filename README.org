@@ -12,6 +12,7 @@ As its name suggest, currently security is not a strength of this package. It's 
 [[/screenshot2.png]]
 
 * Configuration
+
 Add the following lines to your =init.el=
 #+BEGIN_SRC emacs-lisp
   (require 'insecure-lock)
@@ -19,6 +20,8 @@ Add the following lines to your =init.el=
   (require 'posframe)
   (setq 'insecure-lock-mode-hook '(insecure-lock-blank-screen insecure-lock-posframe)) ;; Enable date time display
 #+END_SRC
+
+Note that currently =insecure-lock= is *not* very robust against errors from modules. To avoid hanging your Emacs session because of misconfiguration, it's strongly advised to try your new configurations in a separate Emacs instance before using it in your main Emacs session!
 
 ** Variables for customization
 
