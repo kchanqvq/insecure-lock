@@ -1,10 +1,11 @@
-;;; insecure-lock.el --- Screen lock within Emacs  -*- lexical-binding: t; -*-
+;;; insecure-lock.el --- Extensible screen lock framework  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2022 Free Software Foundation, Inc.
 
 ;; Author: Qiantan Hong <qhong@alum.mit.edu>
 ;; Maintainer: Qiantan Hong <qhong@alum.mit.edu>
 ;; URL: https://github.com/BlueFlo0d/insecure-lock
+;; Package-Requires: ((emacs "27.1"))
 ;; Keywords: unix screensaver security
 ;; Version: 0.0.0
 
@@ -89,12 +90,12 @@ If SECONDS is nil or non-positive, disable idle timer."
     (setq insecure-lock-idle-timer nil))
   (when (and seconds (> seconds 0))
     (setq insecure-lock-idle-timer
-          (run-with-idle-timer seconds t 'insecure-lock-enter))))
+          (run-with-idle-timer seconds t #'insecure-lock-enter))))
 
 (defvar insecure-lock-mode-hook '(insecure-lock-blank-screen))
 (define-minor-mode insecure-lock-mode
   "Global minor mode for screen lock."
-  :global t)
+  :global t :require 'insecure-lock)
 
 (defvar insecure-lock-last-incorrect-attempts 0)
 (defun insecure-lock-enter ()
