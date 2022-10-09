@@ -2,6 +2,8 @@
 
 It is implemented within Emacs itself rather than interfacing with underlying window system, so it is best used together with EXWM as a screen locker. Otherwise, it can be used as a screen saver.
 
+As its name suggest, currently security is not a strength of this package. It's more of an advice rather than defense against your intruders. Nevertheless, any suggestions about improving security is more than welcomed!
+
 * Gallery
 =(setq 'insecure-lock-mode-hook '(insecure-lock-redact insecure-lock-posframe))=
 [[/screenshot1.png]]
