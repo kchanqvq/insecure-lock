@@ -81,8 +81,12 @@ Otherwise unlock with any key stroke, acting more like a screen saver."
         (setq insecure-lock-last-incorrect-attempts 0)
         (while
             (not (= (with-temp-buffer
-                      (ignore-error 'quit (insert (read-passwd "Password: ")))
-                      (call-process-region (point-min) (point-min)
+                      (ignore-error 'quit (insert (read-passwd
+                                                   (if (> insecure-lock-last-incorrect-attempts 0)
+                                                       (format "%s incorrect attempts. Password: " insecure-lock-last-incorrect-attempts)
+                                                     "Password: "))))
+                      (message "Autheticating...")
+                      (call-process-region (point-min) (point-max)
                                            "sudo" nil nil nil "-S" "-k" "true"))
                     0))
           (cl-incf insecure-lock-last-incorrect-attempts))
