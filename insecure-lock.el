@@ -169,15 +169,16 @@ displaying buffers/windows."
                               `(space :width (,(/ (- (shr-string-pixel-width line1)
                                                      (shr-string-pixel-width line2))
                                                   2))))
-                  line2))))
+                  line2))
+        (apply #'posframe-show (current-buffer) insecure-lock-posframe-parameters)))
     (defvar insecure-lock-posframe-update-function 'insecure-lock-posframe-default-update-function)
     (defun insecure-lock-posframe ()
       "`insecure-lock' module that display a posframe."
       (if insecure-lock-mode
-          (let ((buffer (get-buffer-create " *Insecure Lock Screensaver*")))
+          (progn
+            (get-buffer-create " *Insecure Lock Screensaver*")
             (add-hook 'insecure-lock-update-functions insecure-lock-posframe-update-function)
-            (funcall insecure-lock-posframe-update-function)
-            (apply #'posframe-show buffer insecure-lock-posframe-parameters))
+            (funcall insecure-lock-posframe-update-function))
         (posframe-delete " *Insecure Lock Screensaver*")))))
 
 (provide 'insecure-lock)
