@@ -37,7 +37,7 @@ The order of modules matters! For example, usually you want to put =insecure-loc
 
 Available "modules" (in fact just plain functions):
 - =insecure-lock-blank-screen= :: Display a blank buffer without modeline in place of any displaying buffers/windows.
-- =insecure-lock-redact= :: Available only if the =redacted= package is loaded. Turn on =redact-mode= on any displaying buffer.
+- =insecure-lock-redact= :: Available only if the =redacted= package is loaded. Turn on =redact-mode= and disable mode line on any displaying buffer.
 - =insecure-lock-posframe= :: Available only if the =posframe= package is loaded. Display a posframe to show some status. This can be customized by:
   + =insecure-lock-posframe-parameters= :: Parameters to the posframe.
   + =insecure-lock-posframe-update-function= :: Function to populate the posframe. The default one, =insecure-lock-posframe-default-update-function=, shows current time and date in two lines, padded and centered. It's a good starting point for writing your own snippet!

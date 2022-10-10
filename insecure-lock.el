@@ -94,7 +94,12 @@ If SECONDS is nil or non-positive, disable idle timer."
     (setq insecure-lock-idle-timer
           (run-with-idle-timer seconds t #'insecure-lock-enter))))
 
-(defvar insecure-lock-mode-hook '(insecure-lock-blank-screen))
+(defvar insecure-lock-mode-hook '(insecure-lock-blank-screen)
+  "You can turn on screen lock \"modules\" by adding functions to this variable.
+
+The order of modules matters! For example, usually you want to
+put `insecure-lock-posframe' after the rest so that the posframe
+doesn't get blanked/redacted.")
 (define-minor-mode insecure-lock-mode
   "Global minor mode for screen lock."
   :global t :require 'insecure-lock)
@@ -174,7 +179,9 @@ displaying buffers/windows."
 (defvar-local insecure-lock--saved-mode-line-format nil)
 (with-eval-after-load 'redacted
   (defun insecure-lock-redact ()
-    "`insecure-lock' module that redacts buffers."
+    "`insecure-lock' module that redacts buffers.
+
+Turn on `redact-mode' and disable mode line on any displaying buffer."
     (if insecure-lock-mode
         (progn
           (dolist (frame (frame-list))
@@ -199,8 +206,12 @@ displaying buffers/windows."
 (with-eval-after-load 'posframe
   (require 'shr)
   (defvar insecure-lock-posframe-parameters
-    '(:poshandler posframe-poshandler-frame-center :internal-border-width 3))
+    '(:poshandler posframe-poshandler-frame-center :internal-border-width 3)
+    "Parameters to the posframe shown by `insecure-lock-posframe'.")
   (defun insecure-lock-posframe-default-update-function ()
+    "Default function for `insecure-lock-posframe-update-function'.
+
+Shows current time and date in two lines, padded and centered."
     (with-current-buffer " *Insecure Lock Screensaver*"
       (delete-region (point-min) (point-max))
       (let ((line1 (propertize (concat " " (format-time-string "%-I:%M:%S %p") " ")
@@ -214,7 +225,8 @@ displaying buffers/windows."
                                                 2))))
                 line2))
       (apply #'posframe-show (current-buffer) insecure-lock-posframe-parameters)))
-  (defvar insecure-lock-posframe-update-function 'insecure-lock-posframe-default-update-function)
+  (defvar insecure-lock-posframe-update-function 'insecure-lock-posframe-default-update-function
+    "Function to populate the posframe shown by `insecure-lock-posframe'.")
   (defun insecure-lock-posframe ()
     "`insecure-lock' module that display a posframe."
     (if insecure-lock-mode
