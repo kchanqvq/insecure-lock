@@ -108,30 +108,31 @@ doesn't get blanked/redacted.")
 (defun insecure-lock-enter ()
   "Toggle on screen lock."
   (interactive)
-  (setq insecure-lock-update-functions nil)
-  (insecure-lock-mode)
-  (when insecure-lock-update-functions
-    (insecure-lock-run-update-timer))
-  (if insecure-lock-require-password
-      (progn
-        (insecure-lock-lock-keys)
-        (setq insecure-lock-last-incorrect-attempts 0)
-        (while
-            (not (= (with-temp-buffer
-                      (ignore-error 'quit (insert (read-passwd
-                                                   (if (> insecure-lock-last-incorrect-attempts 0)
-                                                       (format "%s incorrect attempts. Password: " insecure-lock-last-incorrect-attempts)
-                                                     "Password: "))))
-                      (message "Autheticating...")
-                      (call-process-region (point-min) (point-max)
-                                           "sudo" nil nil nil "-S" "-k" "true"))
-                    0))
-          (cl-incf insecure-lock-last-incorrect-attempts))
-        (insecure-lock-unlock-keys)
-        (message "%s incorrect attempts" insecure-lock-last-incorrect-attempts))
-    (read-key))
-  (insecure-lock-stop-update-timer)
-  (insecure-lock-mode -1))
+  (unless insecure-lock-mode
+    (setq insecure-lock-update-functions nil)
+    (insecure-lock-mode)
+    (when insecure-lock-update-functions
+      (insecure-lock-run-update-timer))
+    (if insecure-lock-require-password
+        (progn
+          (insecure-lock-lock-keys)
+          (setq insecure-lock-last-incorrect-attempts 0)
+          (while
+              (not (= (with-temp-buffer
+                        (ignore-error 'quit (insert (read-passwd
+                                                     (if (> insecure-lock-last-incorrect-attempts 0)
+                                                         (format "%s incorrect attempts. Password: " insecure-lock-last-incorrect-attempts)
+                                                       "Password: "))))
+                        (message "Autheticating...")
+                        (call-process-region (point-min) (point-max)
+                                             "sudo" nil nil nil "-S" "-k" "true"))
+                      0))
+            (cl-incf insecure-lock-last-incorrect-attempts))
+          (insecure-lock-unlock-keys)
+          (message "%s incorrect attempts" insecure-lock-last-incorrect-attempts))
+      (read-key))
+    (insecure-lock-stop-update-timer)
+    (insecure-lock-mode -1)))
 
 ;;; Screen Lock Modules
 
