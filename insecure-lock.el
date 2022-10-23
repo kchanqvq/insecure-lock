@@ -157,6 +157,12 @@ indirectly called by the latter."
     (delete-other-windows window)
     window))
 
+(defcustom insecure-lock-blank-screen-background nil
+  "Background of blank screen."
+  :type '(choice (const :tag "Don't set" nil)
+                 (color :tag "Color"))
+  :group 'insecure-lock)
+(defvar insecure-lock--saved-background-color nil)
 (defun insecure-lock-blank-screen ()
   "`insecure-lock' module that blanks screen.
 
@@ -166,6 +172,9 @@ displaying buffers/windows."
       (progn
         (when insecure-lock--saved-window-configuration (error "Already blanked screen"))
         (setq insecure-lock--saved-window-configuration (current-window-configuration))
+        (when insecure-lock-blank-screen-background
+          (setq insecure-lock--saved-background-color (face-background 'default))
+          (set-face-background 'default insecure-lock-blank-screen-background))
         (with-current-buffer (get-buffer-create " *Insecure Lock Blank Screen*")
           (setq-local mode-line-format nil cursor-type nil)
           (dolist (frame (frame-list))
@@ -175,7 +184,10 @@ displaying buffers/windows."
                          'insecure-lock--display-buffer-full-frame)
                        (current-buffer) nil)))))
     (set-window-configuration insecure-lock--saved-window-configuration)
-    (setq insecure-lock--saved-window-configuration nil)))
+    (setq insecure-lock--saved-window-configuration nil)
+    (when insecure-lock-blank-screen-background
+      (set-face-background 'default insecure-lock--saved-background-color)
+      (setq insecure-lock--saved-background-color nil))))
 
 (declare-function redacted-mode redacted)
 (defvar-local insecure-lock--saved-mode-line-format nil)
