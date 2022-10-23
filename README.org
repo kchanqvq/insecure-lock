@@ -2,13 +2,13 @@
 
 It is implemented within Emacs itself rather than interfacing with underlying window system, so it is best used together with EXWM as a screen locker. Otherwise, it can be used as a screen saver.
 
-As its name suggest, currently security is not a strength of this package. It's more of an advice rather than defense against your intruders. Nevertheless, any suggestions about improving security is more than welcomed!
+As its name suggest, currently security is not a strength of this package. It's more of an advice rather than defense against your intruders. Nevertheless, any suggestions about improving security are more than welcomed!
 
 * Gallery
 =(setq 'insecure-lock-mode-hook '(insecure-lock-redact insecure-lock-posframe))=
 [[/screenshot1.png]]
 
-=(setq insecure-lock-mode-hook '(vampire-time-screensaver insecure-lock-blank-screen))= (=vampire-time-screensaver= is a function for my personal use, haven't published yet. Curious people may check my =.emacs.d=.)
+=(setq insecure-lock-mode-hook '(vampire-time-screensaver insecure-lock-blank-screen))= (=vampire-time-screensaver= is a function for my personal use, haven't been published yet. Curious people may check my =.emacs.d=.)
 [[/screenshot2.png]]
 
 * Configuration
@@ -55,7 +55,7 @@ A minimal example of a =insecure-lock= module:
         (progn
           (setq blackout--saved-background-color (face-background 'default))
           (set-background-color "black"))
-      (set-background-color (face-background 'default)))
+      (set-background-color blackout--saved-background-color))
 #+END_SRC
 You can enable it via =(add-hook 'insecure-lock-mode-hook 'blackout)=. This sets Emacs background color to black when screen is locked, and recover the original background color when unlocked.
 
