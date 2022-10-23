@@ -176,65 +176,68 @@ displaying buffers/windows."
     (set-window-configuration insecure-lock--saved-window-configuration)
     (setq insecure-lock--saved-window-configuration nil)))
 
+(declare-function redacted-mode redacted)
 (defvar-local insecure-lock--saved-mode-line-format nil)
-(with-eval-after-load 'redacted
-  (defun insecure-lock-redact ()
-    "`insecure-lock' module that redacts buffers.
+(defun insecure-lock-redact ()
+  "`insecure-lock' module that redacts buffers.
 
-Turn on `redact-mode' and disable mode line on any displaying buffer."
-    (if insecure-lock-mode
-        (progn
-          (dolist (frame (frame-list))
-            (dolist (window (window-list frame))
-              (with-current-buffer (window-buffer window)
-                (redacted-mode)
-                (when (local-variable-p 'mode-line-format)
-                  (setq-local insecure-lock--saved-mode-line-format mode-line-format
-                              mode-line-format " ")))))
-          (setq-default insecure-lock--saved-mode-line-format mode-line-format
-                        mode-line-format " "))
-      (dolist (frame (frame-list))
-        (dolist (window (window-list frame))
-          (with-current-buffer (window-buffer window)
-            (redacted-mode -1)
-            (when (local-variable-p 'mode-line-format)
-              (setq-local  mode-line-format insecure-lock--saved-mode-line-format
-                           insecure-lock--saved-mode-line-format nil)))))
-      (setq-default mode-line-format insecure-lock--saved-mode-line-format
-                    insecure-lock--saved-mode-line-format nil))))
+Turn on `redacted-mode' and disable mode line on any displaying buffer."
+  (unless (require 'redacted nil t) (user-error "redact-mode not available"))
+  (if insecure-lock-mode
+      (progn
+        (dolist (frame (frame-list))
+          (dolist (window (window-list frame))
+            (with-current-buffer (window-buffer window)
+              (redacted-mode)
+              (when (local-variable-p 'mode-line-format)
+                (setq-local insecure-lock--saved-mode-line-format mode-line-format
+                            mode-line-format " ")))))
+        (setq-default insecure-lock--saved-mode-line-format mode-line-format
+                      mode-line-format " "))
+    (dolist (frame (frame-list))
+      (dolist (window (window-list frame))
+        (with-current-buffer (window-buffer window)
+          (redacted-mode -1)
+          (when (local-variable-p 'mode-line-format)
+            (setq-local  mode-line-format insecure-lock--saved-mode-line-format
+                         insecure-lock--saved-mode-line-format nil)))))
+    (setq-default mode-line-format insecure-lock--saved-mode-line-format
+                  insecure-lock--saved-mode-line-format nil)))
 
-(with-eval-after-load 'posframe
-  (require 'shr)
-  (defvar insecure-lock-posframe-parameters
-    '(:poshandler posframe-poshandler-frame-center :internal-border-width 3)
-    "Parameters to the posframe shown by `insecure-lock-posframe'.")
-  (defun insecure-lock-posframe-default-update-function ()
-    "Default function for `insecure-lock-posframe-update-function'.
+(require 'shr)
+(declare-function posframe-show posframe)
+(declare-function posframe-delete posframe)
+(defvar insecure-lock-posframe-parameters
+  '(:poshandler posframe-poshandler-frame-center :internal-border-width 3)
+  "Parameters to the posframe shown by `insecure-lock-posframe'.")
+(defun insecure-lock-posframe-default-update-function ()
+  "Default function for `insecure-lock-posframe-update-function'.
 
 Shows current time and date in two lines, padded and centered."
-    (with-current-buffer " *Insecure Lock Screensaver*"
-      (delete-region (point-min) (point-max))
-      (let ((line1 (propertize (concat " " (format-time-string "%-I:%M:%S %p") " ")
-                               'face '(:height 10.0)))
-            (line2 (propertize (format-time-string "%a %m/%d/%Y")
-                               'face '(:height 5.0))))
-        (insert line1 "\n"
-                (propertize " " 'display
-                            `(space :width (,(/ (- (shr-string-pixel-width line1)
-                                                   (shr-string-pixel-width line2))
-                                                2))))
-                line2))
-      (apply #'posframe-show (current-buffer) insecure-lock-posframe-parameters)))
-  (defvar insecure-lock-posframe-update-function 'insecure-lock-posframe-default-update-function
-    "Function to populate the posframe shown by `insecure-lock-posframe'.")
-  (defun insecure-lock-posframe ()
-    "`insecure-lock' module that display a posframe."
-    (if insecure-lock-mode
-        (progn
-          (get-buffer-create " *Insecure Lock Screensaver*")
-          (add-hook 'insecure-lock-update-functions insecure-lock-posframe-update-function)
-          (funcall insecure-lock-posframe-update-function))
-      (posframe-delete " *Insecure Lock Screensaver*"))))
+  (unless (require 'posframe nil t) (user-error "posframe not available"))
+  (with-current-buffer " *Insecure Lock Screensaver*"
+    (delete-region (point-min) (point-max))
+    (let ((line1 (propertize (concat " " (format-time-string "%-I:%M:%S %p") " ")
+                             'face '(:height 10.0)))
+          (line2 (propertize (format-time-string "%a %m/%d/%Y")
+                             'face '(:height 5.0))))
+      (insert line1 "\n"
+              (propertize " " 'display
+                          `(space :width (,(/ (- (shr-string-pixel-width line1)
+                                                 (shr-string-pixel-width line2))
+                                              2))))
+              line2))
+    (apply #'posframe-show (current-buffer) insecure-lock-posframe-parameters)))
+(defvar insecure-lock-posframe-update-function 'insecure-lock-posframe-default-update-function
+  "Function to populate the posframe shown by `insecure-lock-posframe'.")
+(defun insecure-lock-posframe ()
+  "`insecure-lock' module that display a posframe."
+  (if insecure-lock-mode
+      (progn
+        (get-buffer-create " *Insecure Lock Screensaver*")
+        (add-hook 'insecure-lock-update-functions insecure-lock-posframe-update-function)
+        (funcall insecure-lock-posframe-update-function))
+    (posframe-delete " *Insecure Lock Screensaver*")))
 
 (provide 'insecure-lock)
 ;;; insecure-lock.el ends here
