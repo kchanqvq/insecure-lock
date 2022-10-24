@@ -75,7 +75,7 @@ Otherwise unlock with any key stroke, acting more like a screen saver."
     (cancel-timer insecure-lock-update-timer))
   (setq insecure-lock-update-timer
         (run-at-time t insecure-lock-update-timer-interval
-                     #'(lambda () (run-hooks 'insecure-lock-update-functions)))))
+                     (lambda () (run-hooks 'insecure-lock-update-functions)))))
 (defun insecure-lock-stop-update-timer ()
   (when insecure-lock-update-timer
     (cancel-timer insecure-lock-update-timer)
@@ -195,7 +195,7 @@ displaying buffers/windows."
   "`insecure-lock' module that redacts buffers.
 
 Turn on `redacted-mode' and disable mode line on any displaying buffer."
-  (unless (require 'redacted nil t) (user-error "redact-mode not available"))
+  (unless (require 'redacted nil t) (user-error "Package `redacted' not available"))
   (if insecure-lock-mode
       (progn
         (dolist (frame (frame-list))
@@ -227,7 +227,7 @@ Turn on `redacted-mode' and disable mode line on any displaying buffer."
   "Default function for `insecure-lock-posframe-update-function'.
 
 Shows current time and date in two lines, padded and centered."
-  (unless (require 'posframe nil t) (user-error "posframe not available"))
+  (unless (require 'posframe nil t) (user-error "Package `posframe' not available"))
   (with-current-buffer " *Insecure Lock Screensaver*"
     (delete-region (point-min) (point-max))
     (let ((line1 (propertize (concat " " (format-time-string "%-I:%M:%S %p") " ")
