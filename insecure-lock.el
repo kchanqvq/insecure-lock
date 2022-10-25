@@ -1,6 +1,6 @@
 ;;; insecure-lock.el --- Extensible screen lock framework  -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2022 Free Software Foundation, Inc.
+;; Copyright (C) 2022 Qiantan Hong
 
 ;; Author: Qiantan Hong <qhong@alum.mit.edu>
 ;; Maintainer: Qiantan Hong <qhong@alum.mit.edu>
@@ -9,20 +9,18 @@
 ;; Keywords: unix screensaver security
 ;; Version: 0.0.0
 
-;; This file is part of GNU Emacs.
-
-;; GNU Emacs is free software: you can redistribute it and/or modify
+;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or
 ;; (at your option) any later version.
 
-;; GNU Emacs is distributed in the hope that it will be useful,
+;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 ;; This package provides an extensible screen lock framework.
@@ -157,12 +155,10 @@ indirectly called by the latter."
     (delete-other-windows window)
     window))
 
-(defcustom insecure-lock-blank-screen-background nil
-  "Background of blank screen."
-  :type '(choice (const :tag "Don't set" nil)
-                 (color :tag "Color"))
-  :group 'insecure-lock)
-(defvar insecure-lock--saved-background-color nil)
+(defface insecure-lock-blank-screen-face '((default :inherit default))
+  "Blank screen remap default face to this face.
+
+Useful for setting a background color.")
 (defun insecure-lock-blank-screen ()
   "`insecure-lock' module that blanks screen.
 
@@ -172,9 +168,8 @@ displaying buffers/windows."
       (progn
         (when insecure-lock--saved-window-configuration (error "Already blanked screen"))
         (setq insecure-lock--saved-window-configuration (current-window-configuration))
-        (when insecure-lock-blank-screen-background
-          (setq insecure-lock--saved-background-color (face-background 'default))
-          (set-face-background 'default insecure-lock-blank-screen-background))
+        (push '(default . insecure-lock-blank-screen-face) face-remapping-alist)
+        (push '(fringe . insecure-lock-blank-screen-face) face-remapping-alist)
         (with-current-buffer (get-buffer-create " *Insecure Lock Blank Screen*")
           (setq-local mode-line-format nil cursor-type nil)
           (dolist (frame (frame-list))
@@ -185,9 +180,9 @@ displaying buffers/windows."
                        (current-buffer) nil)))))
     (set-window-configuration insecure-lock--saved-window-configuration)
     (setq insecure-lock--saved-window-configuration nil)
-    (when insecure-lock-blank-screen-background
-      (set-face-background 'default insecure-lock--saved-background-color)
-      (setq insecure-lock--saved-background-color nil))))
+    (setq face-remapping-alist
+          (delete '(fringe . insecure-lock-blank-screen-face)
+           (delete '(default . insecure-lock-blank-screen-face) face-remapping-alist)))))
 
 (declare-function redacted-mode redacted)
 (defvar-local insecure-lock--saved-mode-line-format nil)
@@ -221,7 +216,8 @@ Turn on `redacted-mode' and disable mode line on any displaying buffer."
 (declare-function posframe-show posframe)
 (declare-function posframe-delete posframe)
 (defvar insecure-lock-posframe-parameters
-  '(:poshandler posframe-poshandler-frame-center :internal-border-width 3)
+  '(:position (0 . 0) ;; workaround posframe bug
+    :poshandler posframe-poshandler-frame-center :internal-border-width 3)
   "Parameters to the posframe shown by `insecure-lock-posframe'.")
 (defun insecure-lock-posframe-default-update-function ()
   "Default function for `insecure-lock-posframe-update-function'.

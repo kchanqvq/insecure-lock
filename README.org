@@ -11,6 +11,9 @@ As its name suggest, currently security is not a strength of this package. It's 
 =(setq insecure-lock-mode-hook '(vampire-time-screensaver insecure-lock-blank-screen))= (=vampire-time-screensaver= is a function for my personal use, haven't been published yet. Curious people may check my =.emacs.d=.)
 [[/screenshot2.png]]
 
+=(setq insecure-lock-mode-hook '(insecure-lock-blank-screen insecure-lock-posframe))=, with some tweaks to =insecure-lock-blank-screen-face= and =insecure-lock-posframe-parameters=
+[[/screenshot3.png]]
+
 * Configuration
 
 Add the following lines to your =init.el=
