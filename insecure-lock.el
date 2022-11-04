@@ -103,6 +103,27 @@ doesn't get blanked/redacted.")
   :global t :require 'insecure-lock)
 
 (defvar insecure-lock-last-incorrect-attempts 0)
+
+(defun insecure-lock--authenticate (password)
+  "Use `su' to authenticate PASSWORD for current user.
+
+Return non-nil if PASSWORD is correct."
+  (message "Authenticating...")
+  (let* (retval
+         (proc (make-process
+                :sentinel
+                (lambda (_ message)
+                  (setq retval message))
+                :filter
+                (lambda (proc _)
+                  (process-send-string proc password)
+                  (process-send-string proc "\n"))
+                :name "su"
+                :command (list "su" (user-login-name) "-c" "true")
+                :connection-type 'pty)))
+    (while (not retval) (accept-process-output proc))
+    (equal retval "finished\n")))
+
 (defun insecure-lock-enter ()
   "Toggle on screen lock."
   (interactive)
@@ -115,16 +136,11 @@ doesn't get blanked/redacted.")
         (progn
           (insecure-lock-lock-keys)
           (setq insecure-lock-last-incorrect-attempts 0)
-          (while
-              (not (= (with-temp-buffer
-                        (ignore-error 'quit (insert (read-passwd
-                                                     (if (> insecure-lock-last-incorrect-attempts 0)
-                                                         (format "%s incorrect attempts. Password: " insecure-lock-last-incorrect-attempts)
-                                                       "Password: "))))
-                        (message "Autheticating...")
-                        (call-process-region (point-min) (point-max)
-                                             "sudo" nil nil nil "-S" "-k" "true"))
-                      0))
+          (while (not (insecure-lock--authenticate
+                       (read-passwd
+                        (if (> insecure-lock-last-incorrect-attempts 0)
+                            (format "%s incorrect attempts. Password: " insecure-lock-last-incorrect-attempts)
+                          "Password: "))))
             (cl-incf insecure-lock-last-incorrect-attempts))
           (insecure-lock-unlock-keys)
           (message "%s incorrect attempts" insecure-lock-last-incorrect-attempts))
@@ -137,7 +153,7 @@ doesn't get blanked/redacted.")
 (defvar insecure-lock--saved-window-configuration nil)
 
 (defun insecure-lock--display-buffer-full-frame (buffer alist)
-  "Compatability function for `display-buffer-full-frame'.
+  "Compatibility function for `display-buffer-full-frame'.
 
 Display BUFFER in the current frame, taking the entire frame.
 ALIST is an association list of action symbols and values.  See

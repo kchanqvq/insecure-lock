@@ -31,8 +31,6 @@ Note that currently =insecure-lock= is *not* very robust against errors from mod
 *** =insecure-lock-require-password=
 If set, intercept input events and require login password to unlock. Otherwise unlock with any key stroke, acting more like a screen saver.
 
-I found that the password authentication doesn't work on my Mac because the =sudo= implementation is plainly wrong (what else would your expect from Apple, huh?). It doesn't respect =-S= argument. Therefore I =(setq insecure-lock-require-password nil)= on my Mac.
-
 *** =insecure-lock-mode-hook=
 You can turn on screen lock "modules" by adding functions to this variable. The default value is =(insecure-lock-blank-screen)=.
 
