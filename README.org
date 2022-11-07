@@ -1,6 +1,8 @@
-=insecure-lock= is an extensible screen lock framework.
+#+TITLE: insecure-lock - Screen locker in pure Emacs Lisp
 
-It is implemented within Emacs itself rather than interfacing with underlying window system, so it is best used together with EXWM as a screen locker. Otherwise, it can be used as a screen saver.
+#+html: <a href="https://melpa.org/#/insecure-lock"><img alt="MELPA" src="https://melpa.org/packages/insecure-lock-badge.svg"/></a>
+
+=insecure-lock= is an extensible screen lock framework. It is implemented within Emacs itself rather than interfacing with underlying window system, so it is best used together with EXWM as a screen locker. Otherwise, it can be used as a screen saver.
 
 As its name suggest, currently security is not a strength of this package. It's more of an advice rather than defense against your intruders. Nevertheless, any suggestions about improving security are more than welcomed!
 
