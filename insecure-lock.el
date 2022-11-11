@@ -43,10 +43,14 @@ Otherwise unlock with any key stroke, acting more like a screen saver."
 (defvar insecure-lock--saved-local-map nil)
 (defvar insecure-lock--saved-global-map nil)
 (defvar insecure-lock-map
-  (let ((map (make-keymap)))
-    (if (fboundp 'keymap-substitute)
-        (keymap-substitute map 'self-insert-command 'self-insert-command global-map)
-      (substitute-key-definition 'self-insert-command 'self-insert-command map global-map))
+  (let ((map (make-keymap))
+        (f (if (fboundp 'keymap-substitute)
+               'keymap-substitute
+             (lambda (map olddef newdef oldmap)
+               (substitute-key-definition olddef newdef map oldmap)))))
+    (funcall f map 'self-insert-command 'self-insert-command global-map)
+    (funcall f map 'delete-backward-char 'delete-backward-char global-map)
+    (funcall f map 'exit-minibuffer 'exit-minibuffer minibuffer-mode-map)
     map))
 (defun insecure-lock-lock-keys ()
   "Start intercepting input events."
@@ -54,8 +58,8 @@ Otherwise unlock with any key stroke, acting more like a screen saver."
     (error "Already locked keys"))
   (setq insecure-lock--saved-global-map (current-global-map)
         insecure-lock--saved-local-map (current-local-map))
-  (use-global-map insecure-lock-map)
-  (use-local-map (make-keymap)))
+  (use-global-map (make-sparse-keymap))
+  (use-local-map (make-sparse-keymap)))
 (defun insecure-lock-unlock-keys ()
   "Stop intercepting input events."
   (use-global-map insecure-lock--saved-global-map)
@@ -137,10 +141,11 @@ Return non-nil if PASSWORD is correct."
           (insecure-lock-lock-keys)
           (setq insecure-lock-last-incorrect-attempts 0)
           (while (not (insecure-lock--authenticate
-                       (read-passwd
-                        (if (> insecure-lock-last-incorrect-attempts 0)
-                            (format "%s incorrect attempts. Password: " insecure-lock-last-incorrect-attempts)
-                          "Password: "))))
+                       (let ((read-passwd-map insecure-lock-map))
+                         (read-passwd
+                          (if (> insecure-lock-last-incorrect-attempts 0)
+                              (format "%s incorrect attempts. Password: " insecure-lock-last-incorrect-attempts)
+                            "Password: ")))))
             (cl-incf insecure-lock-last-incorrect-attempts))
           (insecure-lock-unlock-keys)
           (message "%s incorrect attempts" insecure-lock-last-incorrect-attempts))
