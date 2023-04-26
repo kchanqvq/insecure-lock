@@ -128,6 +128,7 @@ Return non-nil if PASSWORD is correct."
     (while (not retval) (accept-process-output proc))
     (equal retval "finished\n")))
 
+;;;###autoload
 (defun insecure-lock-enter ()
   "Toggle on screen lock."
   (interactive)
